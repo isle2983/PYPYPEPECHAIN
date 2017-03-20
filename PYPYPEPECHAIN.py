@@ -5,7 +5,7 @@
 
 import os
 import json
-import urllib
+import urllib2
 import hashlib
 import datetime
 
@@ -15,11 +15,20 @@ PEPE_LIST_URL = os.path.join("http://rarepepedirectory.com/json/",
 PEPE_DIR = "/tmp/dank/RAREPEPES"
 PEPE_LIST_FILE = os.path.join(PEPE_DIR, PEPE_LIST_FILENAME)
 
+def download_file(url, dst_path):
+    req = urllib2.Request(url)
+    req.add_unredirected_header('User-Agent', 'Mozilla/5.0')
+    print "downloading %s" % dst_path
+    data = urllib2.urlopen(req).read()
+    f = open(dst_path, "w")
+    f.write(data)
+    f.close()
+
+
 def get_list_dict():
     if not os.path.exists(PEPE_DIR):
         os.makedirs(PEPE_DIR)
-    print "downloading %s" % PEPE_LIST_FILE
-    urllib.urlretrieve(PEPE_LIST_URL, PEPE_LIST_FILE)
+    download_file(PEPE_LIST_URL, PEPE_LIST_FILE)
     l = open(PEPE_LIST_FILE, 'r')
     list_dict = json.loads(l.read())
     l.close()
@@ -45,8 +54,7 @@ def fetch_and_compute(l):
         extension = filename.split('.')[-1]
         file_dl_path = os.path.join(PEPE_DIR, '.'.join([k, extension]))
         if not SKIP_DOWNLOAD_IF_EXISTS or not os.path.exists(file_dl_path):
-            print "downloading %s" % file_dl_path
-            urllib.urlretrieve(v, file_dl_path)
+            download_file(v, file_dl_path)
         else:
             print "skipping download of %s" % file_dl_path
         yield {'symbol': k,
